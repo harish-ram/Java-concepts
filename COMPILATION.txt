@@ -1,0 +1,82 @@
+// Compilation and execution instructions for JavaLearningProject
+
+Method 1: Command Line (Windows PowerShell)
+============================================
+
+// Navigate to project directory
+cd C:\Users\ERS1399\Downloads\Full-Stack-Dev\JavaLearningProject
+
+// Create bin directory for compiled classes
+mkdir bin
+
+// Compile all Java files
+javac -d bin src/models/*.java src/utilities/*.java src/concurrency/*.java src/data/*.java src/main/Main.java
+
+// Run the application
+java -cp bin Main
+
+
+Method 2: From src directory
+=============================
+
+// Navigate to src directory
+cd C:\Users\ERS1399\Downloads\Full-Stack-Dev\JavaLearningProject\src
+
+// Compile everything
+javac -cp . models/*.java utilities/*.java concurrency/*.java data/*.java main/Main.java
+
+// Run from parent directory
+cd ..
+java -cp src main.Main
+
+
+Method 3: Using VS Code with Java Extension
+=============================================
+
+1. Install Java Extension Pack in VS Code
+2. Open the JavaLearningProject folder
+3. Press Ctrl+Shift+B to build the project
+4. Press Ctrl+F5 to run Main.java
+
+
+Method 4: Manual compilation and execution
+===========================================
+
+// Step 1: Compile models
+javac src/models/Vehicle.java
+javac src/models/Car.java
+javac src/models/Bike.java
+javac src/models/Drivable.java
+javac src/models/DrivableCar.java
+
+// Step 2: Compile utilities
+javac src/utilities/DataProcessor.java
+javac src/utilities/FileHandler.java
+
+// Step 3: Compile concurrency
+javac src/concurrency/Counter.java
+javac src/concurrency/ConcurrencyDemo.java
+
+// Step 4: Compile data
+javac src/data/VehicleDatabase.java
+
+// Step 5: Compile main
+javac src/main/Main.java
+
+// Step 6: Run
+java -cp src main.Main
+
+
+Troubleshooting
+===============
+
+Issue: "cannot find symbol"
+Solution: Ensure all files are compiled and classpath includes src directory
+
+Issue: "class X is public, should be declared in a file named X.java"
+Solution: Each public class should be in its own file (already done in this project)
+
+Issue: Package not found
+Solution: Use -cp flag with correct source directory path
+
+For more details, see README.md in the project root

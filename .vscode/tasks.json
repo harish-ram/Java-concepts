@@ -1,0 +1,28 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Java Project",
+            "type": "shell",
+            "command": "javac",
+            "args": [
+                "-d",
+                "bin",
+                "src/models/*.java",
+                "src/utilities/*.java",
+                "src/concurrency/*.java",
+                "src/data/*.java",
+                "src/main/Main.java"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": "$javac"
+        }
+    ]
+}

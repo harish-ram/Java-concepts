@@ -1,0 +1,27 @@
+{
+    "java.project.sourcePaths": ["src"],
+    "java.project.outputPath": "bin",
+    "java.project.referencedLibraries": [],
+    "java.sourceDefaultEncoding": "UTF-8",
+    "[java]": {
+        "editor.defaultFormatter": "redhat.java",
+        "editor.formatOnSave": false
+    },
+    "java.jdt.ls.vmargs": "-Xmx1G",
+    "java.errors.incompleteClasspath.severity": "ignore",
+    "java.server.launchMode": "Standard",
+    "java.completion.maxResults": 0,
+    "java.codeGeneration.useBlocks": true,
+    "java.import.gradle.enabled": false,
+    "java.import.maven.enabled": false,
+    "java.configuration.checkProjectSettingsExclusions": false,
+    "problems.decorations.enabled": false,
+    "files.exclude": {
+        ".git": true,
+        "bin": true
+    },
+    "java.symbols.includeSourceMethodResolutions": false
+}
+
+
+
