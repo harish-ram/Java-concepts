@@ -12,6 +12,13 @@ public class Car extends Vehicle {
         this.numDoors = numDoors;
         this.fuelType = fuelType;
     }
+
+    // Constructor with explicit id for preserving ids on update
+    public Car(String id, String brand, String model, int year, int numDoors, String fuelType) {
+        super(id, brand, model, year);
+        this.numDoors = numDoors;
+        this.fuelType = fuelType;
+    }
     
     @Override
     public void start() {

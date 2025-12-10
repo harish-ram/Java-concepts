@@ -6,12 +6,21 @@ package models;
  * - Inheritance (extended by Car, Bike, Truck)
  * - Abstraction (abstract methods)
  */
+import java.util.UUID;
+
 public abstract class Vehicle {
+    private final String id;
     private final String brand;
     private final String model;
     protected int year;
     
     public Vehicle(String brand, String model, int year) {
+        this(UUID.randomUUID().toString(), brand, model, year);
+    }
+
+    // Constructor with explicit id (for updates/persistence)
+    protected Vehicle(String id, String brand, String model, int year) {
+        this.id = id;
         this.brand = brand;
         this.model = model;
         this.year = year;
@@ -28,6 +37,10 @@ public abstract class Vehicle {
     
     public int getYear() {
         return year;
+    }
+
+    public String getId() {
+        return id;
     }
     
     // Abstract method - must be implemented by subclasses

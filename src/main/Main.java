@@ -28,7 +28,7 @@ public class Main {
         // 4. Concurrency
         demonstrateConcurrency();
 
-        // 5. Interactive User Input Demo (ArrayList, HashMap, Exception Handling, Streams)
+        // 5. Interactive User Input Demo (ArrayList, HashMap, Exception Handling, Streams), with persistence
         interactiveVehicleDemo();
         
         System.out.println("\n========================================");
@@ -40,8 +40,11 @@ public class Main {
          */
         private static void interactiveVehicleDemo() {
             System.out.println("\n========== INTERACTIVE VEHICLE DEMO ==========");
-            ArrayList<Vehicle> vehicles = new ArrayList<>();
-            HashMap<String, List<Vehicle>> brandMap = new HashMap<>();
+            VehicleDatabase db = new VehicleDatabase();
+            // Load from persistence
+            db.loadFromJson("vehicles.json");
+            ArrayList<Vehicle> vehicles = new ArrayList<>(db.getAllVehicles());
+            HashMap<String, List<Vehicle>> brandMap = new HashMap<>(db.groupByBrand());
             try (Scanner scanner = new Scanner(System.in)) {
                 System.out.print("How many vehicles do you want to add? ");
                 int count = Integer.parseInt(scanner.nextLine());
@@ -89,40 +92,76 @@ public class Main {
                         Bike b = new Bike(brand, model, year, sidecar, bikeType);
                         vehicles.add(b);
                         brandMap.computeIfAbsent(brand, k -> new ArrayList<>()).add(b);
+                    } else if (type.equals("truck")) {
+                        System.out.print("Payload capacity (kg): ");
+                        double payload;
+                        try {
+                            payload = Double.parseDouble(scanner.nextLine());
+                        } catch (NumberFormatException nfe) {
+                            System.out.println("Invalid payload, skipping vehicle.");
+                            continue;
+                        }
+                        System.out.print("Has trailer (true/false): ");
+                        boolean trailer;
+                        try {
+                            trailer = Boolean.parseBoolean(scanner.nextLine());
+                        } catch (Exception ex) {
+                            System.out.println("Invalid boolean, skipping vehicle.");
+                            continue;
+                        }
+                        Truck t = new Truck(brand, model, year, payload, trailer);
+                        vehicles.add(t);
+                        brandMap.computeIfAbsent(brand, k -> new ArrayList<>()).add(t);
+                    } else if (type.equals("motorcycle")) {
+                        System.out.print("Engine CC: ");
+                        int cc;
+                        try {
+                            cc = Integer.parseInt(scanner.nextLine());
+                        } catch (NumberFormatException nfe) {
+                            System.out.println("Invalid engine CC, skipping vehicle.");
+                            continue;
+                        }
+                        System.out.print("Category (Sports/Touring/Cruiser): ");
+                        String mcat = scanner.nextLine().trim();
+                        Motorcycle m = new Motorcycle(brand, model, year, cc, mcat);
+                        vehicles.add(m);
+                        brandMap.computeIfAbsent(brand, k -> new ArrayList<>()).add(m);
                     } else {
                         System.out.println("Unknown type, skipping...");
                         continue;
                     }
                 }
+                // Persist new vehicles back to JSON
+                // Clear and add all to DB then save
+                db.clear();
+                vehicles.forEach(db::addVehicle);
+                db.saveToJson("vehicles.json");
+
+                // Use streams to filter by year
+                System.out.print("\nEnter a year to filter vehicles: ");
+                try {
+                    int filterYear = Integer.parseInt(scanner.nextLine());
+                    System.out.println("Vehicles from year " + filterYear + ":");
+                    vehicles.stream()
+                        .filter(v -> v.getYear() == filterYear)
+                        .forEach(Vehicle::displayInfo);
+                } catch (Exception exFilter) {
+                    System.out.println("Invalid year input.");
+                }
+
+                // Show vehicles grouped by brand using HashMap
+                System.out.println("\nVehicles grouped by brand:");
+                brandMap.forEach((brand, list) -> {
+                    System.out.println("Brand: " + brand);
+                    list.forEach(v -> System.out.println("  - " + v.getModel()));
+                });
+
             } catch (Exception e) {
                 // Keep a generic catch for unexpected exceptions, but print message
                 System.out.println("Error: " + e.getMessage());
             }
             
-            // Display all vehicles
-            System.out.println("\nAll vehicles entered:");
-            vehicles.forEach(Vehicle::displayInfo);
-
-            // Use streams to filter by year
-            System.out.print("\nEnter a year to filter vehicles: ");
-            try {
-                // Need to create a new scanner for second input since previous one may be closed
-                Scanner filterScanner = new Scanner(System.in);
-                int filterYear = Integer.parseInt(filterScanner.nextLine());
-                System.out.println("Vehicles from year " + filterYear + ":");
-                vehicles.stream()
-                    .filter(v -> v.getYear() == filterYear)
-                    .forEach(Vehicle::displayInfo);
-            } catch (Exception e) {
-                System.out.println("Invalid year input.");
-            }
-
-            // Show vehicles grouped by brand using HashMap
-            System.out.println("\nVehicles grouped by brand:");
-            brandMap.forEach((brand, list) -> {
-                System.out.println("Brand: " + brand);
-                list.forEach(v -> System.out.println("  - " + v.getModel()));
-            });
+            
         }
     
     /**
@@ -186,6 +225,8 @@ public class Main {
         db.addVehicle(new Car("Tesla", "Model 3", 2023, 4, "Electric"));
         db.addVehicle(new Bike("Harley-Davidson", "Street 750", 2022, false, "Cruiser"));
         db.addVehicle(new Bike("Honda", "CB500F", 2023, false, "Sports"));
+        db.addVehicle(new Truck("Ford", "F-150", 2021, 1500.0, false));
+        db.addVehicle(new Motorcycle("Yamaha", "R1", 2022, 1000, "Sports"));
         
         // Display all
         db.displayAllVehicles();

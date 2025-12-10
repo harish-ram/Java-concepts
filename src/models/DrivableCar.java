@@ -9,6 +9,10 @@ public class DrivableCar extends Car implements Drivable {
     public DrivableCar(String brand, String model, int year, int numDoors, String fuelType) {
         super(brand, model, year, numDoors, fuelType);
     }
+
+    public DrivableCar(String id, String brand, String model, int year, int numDoors, String fuelType) {
+        super(id, brand, model, year, numDoors, fuelType);
+    }
     
     @Override
     public void accelerate() {

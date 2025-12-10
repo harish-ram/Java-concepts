@@ -1,0 +1,7 @@
+﻿[
+  {"id":"d74f9f8e-1e79-4b23-9cf2-c1f2e95fd9d1","type":"Car","brand":"Toyota","model":"Corolla","year":2020,"doors":4,"fuel":"Hybrid"},
+  {"id":"e8b9e29f-7f2a-4f3f-8c7e-1eab582411ae","type":"Car","brand":"Honda","model":"Civic","year":2021,"doors":4,"fuel":"Petrol"},
+  {"id":"f1e9c0fe-6e61-4a6b-9b79-06f1c9d4e8b2","type":"Truck","brand":"Ford","model":"F-150","year":2020,"payload":1200.0,"trailer":false},
+  {"id":"b6c3f5a1-0f5e-49d2-9c6a-2b3d6e8a7f01","type":"Bike","brand":"Yamaha","model":"MT-07","year":2019,"sidecar":false,"category":"Sports"},
+  {"id":"c4f5d8e3-8192-46a1-8d7b-1623e3ae4c2b","type":"Motorcycle","brand":"Ducati","model":"Panigale","year":2018,"cc":1103,"category":"Sports"}
+]

@@ -12,6 +12,12 @@ public class Bike extends Vehicle {
         this.hasSidecar = hasSidecar;
         this.type = type;
     }
+
+    public Bike(String id, String brand, String model, int year, boolean hasSidecar, String type) {
+        super(id, brand, model, year);
+        this.hasSidecar = hasSidecar;
+        this.type = type;
+    }
     
     @Override
     public void start() {

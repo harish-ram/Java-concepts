@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Vehicle Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 1rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    tr:nth-child(even) {background-color: #f9f9f9;}
+    th { background-color: #f2f2f2; }
+    .controls { margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Vehicle Manager</h1>
+  <div class="controls">
+    <label>Filter by brand: <input id="brandFilter" placeholder="Brand"></label>
+    <label><input id="showIds" type="checkbox"> Show IDs</label>
+    <label>Type: <select id="typeFilter"><option value="">All</option><option>Car</option><option>Bike</option><option>Truck</option><option>Motorcycle</option></select></label>
+    <button id="filterBtn">Filter</button>
+    <button id="clearFilterBtn">Clear</button>
+    <!-- CSV persistence deprecated; JSON is the single storage format used -->
+    <button id="loadJsonBtn">Load JSON</button>
+    <button id="saveJsonBtn">Save JSON</button>
+    <button id="addBtn">Add Vehicle</button>
+  </div>
+
+  <table id="vehicleTable">
+    <thead>
+      <tr><th>ID</th><th>Type</th><th>Brand</th><th>Model</th><th>Year</th><th>Details</th><th>Actions</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Add/Edit modal -->
+  <div id="modal" class="modal" style="display:none; position:fixed; inset:0; background: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background:white; width:480px; margin:60px auto; padding:20px; border-radius:6px; box-shadow:0 3px 12px rgba(0,0,0,0.15);">
+      <h2 id="modalTitle">Add Vehicle</h2>
+      <form id="addForm">
+        <div style="display:flex; gap:12px;">
+          <div style="flex:1"><label>Type: <select id="typeSelect"><option>Car</option><option>Bike</option><option>Truck</option><option>Motorcycle</option></select></label></div>
+          <div style="flex:2"><label>Brand: <input id="brand" placeholder="e.g., Toyota"></label></div>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:8px;">
+          <div style="flex:1"><label>Model: <input id="model" placeholder="e.g., Corolla"></label></div>
+          <div style="flex:1"><label>Year: <input id="year" type="number" min="1900" max="2100" placeholder="2023"></label></div>
+        </div>
+        <div id="typeSpecific" style="margin-top:8px;">
+          <!-- dynamic fields injected here -->
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+          <button id="cancelBtn" type="button">Cancel</button>
+          <button id="saveBtnForm" type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
