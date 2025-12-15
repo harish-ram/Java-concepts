@@ -76,10 +76,16 @@ public class VehicleDatabase {
     
     /**
      * Filter vehicles by brand using streams
+     *
+     * This method performs a case-insensitive substring match - providing
+     * a partial brand string will return matches that contain it (e.g. "hon" -> "Honda").
+     * If the provided brand is null or empty, the full list is returned.
      */
     public List<Vehicle> getVehiclesByBrand(String brand) {
+        if (brand == null || brand.trim().isEmpty()) return getAllVehicles();
+        final String q = brand.trim().toLowerCase();
         return vehicles.stream()
-                .filter(v -> v.getBrand().equalsIgnoreCase(brand))
+                .filter(v -> v.getBrand() != null && v.getBrand().toLowerCase().contains(q))
                 .collect(Collectors.toList());
     }
     

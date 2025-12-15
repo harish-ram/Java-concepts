@@ -2,7 +2,10 @@ package web;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import data.VehicleDatabase;
+import data.VehicleDatabaseRepository;
+import data.VehicleRepository;
+import data.VehicleDaoJdbc;
+import services.VehicleService;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -10,17 +13,35 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import models.*;
 
 public class Server {
-    private final VehicleDatabase db;
+    private final VehicleRepository repo;
+    private final VehicleService service;
     private final HttpServer httpServer;
+    private final CountDownLatch stopLatch = new CountDownLatch(1);
+    private final String adminToken;
 
     public Server(int port) throws IOException {
-        db = new VehicleDatabase();
-        // Load existing JSON if available
-        db.loadFromJson("vehicles.json");
+        this(port, new VehicleDatabaseRepository(), null);
+    }
+
+    public Server(int port, VehicleRepository repo, String adminToken) throws IOException {
+        this.repo = repo;
+        this.adminToken = adminToken;
+        this.service = new VehicleService(repo);
+        // If repository wraps the in-memory DB, attempt to load JSON
+        try {
+            if (repo instanceof VehicleDatabaseRepository) {
+                // load persisted file
+                ((VehicleDatabaseRepository) repo).loadFromJson("vehicles.json");
+            } else {
+                // if JDBC, attempt initialization
+                repo.init();
+            }
+        } catch (Exception ignored) {}
         httpServer = HttpServer.create(new InetSocketAddress(port), 0);
         httpServer.createContext("/api/vehicles", this::handleVehicles);
         httpServer.createContext("/api/vehicles/add", this::handleAdd);
@@ -30,13 +51,25 @@ public class Server {
         // CSV save/load deprecated; keep JSON endpoints only
         httpServer.createContext("/api/vehicles/saveJson", this::handleSaveJson);
         httpServer.createContext("/api/vehicles/loadJson", this::handleLoadJson);
+        // admin endpoints
+        httpServer.createContext("/api/admin/shutdown", this::handleAdminShutdown);
         httpServer.createContext("/", this::handleStatic);
         httpServer.setExecutor(null);
+    }
+
+    public void stop() {
+        httpServer.stop(1);
+        System.out.println("Server stopped at http://localhost:" + httpServer.getAddress().getPort());
+        stopLatch.countDown();
     }
 
     public void start() {
         httpServer.start();
         System.out.println("Server started at http://localhost:" + httpServer.getAddress().getPort());
+    }
+
+    public void waitForStop() throws InterruptedException {
+        stopLatch.await();
     }
 
     private void handleVehicles(HttpExchange exchange) throws IOException {
@@ -50,21 +83,27 @@ public class Server {
             if (id != null) {
             String method = exchange.getRequestMethod();
             if (method.equalsIgnoreCase("GET")) {
-                Vehicle v = db.getVehicleById(id);
-                if (v == null) { exchange.sendResponseHeaders(404, -1); return; }
-                sendJson(exchange, vehicleToJson(v));
+                try {
+                        Vehicle v = service.getVehicleById(id);
+                    if (v == null) { exchange.sendResponseHeaders(404, -1); return; }
+                    sendJson(exchange, vehicleToJson(v));
+                } catch (Exception ex) { sendJson(exchange, "{\"ok\":false, \"error\":\"" + ex.getMessage() + "\"}"); }
                 return;
             } else if (method.equalsIgnoreCase("DELETE")) {
-                boolean removed = db.removeVehicleById(id);
-                sendJson(exchange, "{\"ok\": " + removed + "}");
+                try {
+                    boolean removed = service.removeVehicleById(id);
+                    sendJson(exchange, "{\"ok\": " + removed + "}");
+                } catch (Exception ex) { sendJson(exchange, "{\"ok\":false, \"error\":\"" + ex.getMessage() + "\"}"); }
                 return;
             } else if (method.equalsIgnoreCase("PUT") || method.equalsIgnoreCase("POST")) {
-                Map<String, String> params = parseQuery(exchange);
-                String type = params.getOrDefault("type", "").toLowerCase();
-                Vehicle pv = decodeVehicleFromParams(type, params, id);
-                if (pv == null) { sendJson(exchange, "{\"ok\":false, \"error\":\"unknown type\"}"); return; }
-                boolean ok = db.updateVehiclePreserveId(pv);
-                sendJson(exchange, "{\"ok\": " + ok + "}");
+                try {
+                    Map<String, String> params = parseQuery(exchange);
+                    String type = params.getOrDefault("type", "").toLowerCase();
+                    Vehicle pv = decodeVehicleFromParams(type, params, id);
+                    if (pv == null) { sendJson(exchange, "{\"ok\":false, \"error\":\"unknown type\"}"); return; }
+                    boolean ok = service.updateVehicle(pv);
+                    sendJson(exchange, "{\"ok\": " + ok + "}");
+                } catch (Exception ex) { sendJson(exchange, "{\"ok\":false, \"error\":\"" + ex.getMessage() + "\"}"); }
                 return;
             } else {
                 exchange.sendResponseHeaders(405, -1); return;
@@ -76,9 +115,11 @@ public class Server {
         String brandFilter = query.get("brand");
         String typeFilter = query.get("type");
         System.out.println("GET /api/vehicles query: brand=" + brandFilter + " type=" + typeFilter);
-        List<Vehicle> list = db.getAllVehicles();
+        List<Vehicle> list;
+        try { list = service.getAllVehicles(); } catch (Exception ex) { sendJson(exchange, "{\"ok\":false, \"error\":\"" + ex.getMessage() + "\"}"); return; }
         if (brandFilter != null && !brandFilter.isEmpty()) {
-            list = list.stream().filter(v -> v.getBrand().equalsIgnoreCase(brandFilter)).collect(Collectors.toList());
+            final String q = brandFilter.trim().toLowerCase();
+            list = list.stream().filter(v -> v.getBrand() != null && v.getBrand().toLowerCase().contains(q)).collect(Collectors.toList());
         }
         if (typeFilter != null && !typeFilter.isEmpty()) {
             list = list.stream().filter(v -> v.getClass().getSimpleName().equalsIgnoreCase(typeFilter)).collect(Collectors.toList());
@@ -97,7 +138,7 @@ public class Server {
         try {
             Vehicle v = decodeVehicleFromParams(type, params);
             if (v != null) {
-                db.addVehicle(v);
+                service.addVehicle(v);
                 sendJson(exchange, "{\"ok\":true}");
                 return;
             }
@@ -114,8 +155,7 @@ public class Server {
             if (!exchange.getRequestMethod().equalsIgnoreCase("DELETE") && !exchange.getRequestMethod().equalsIgnoreCase("POST")) { exchange.sendResponseHeaders(405, -1); return; }
             String id = path.substring("/api/vehicles/".length());
             // Debugging removed: perform delete
-            boolean removed = db.removeVehicleById(id);
-            sendJson(exchange, "{\"ok\": " + removed + "}");
+            try { boolean removed = service.removeVehicleById(id); sendJson(exchange, "{\"ok\": " + removed + "}"); } catch (Exception ex) { sendJson(exchange, "{\"ok\":false, \"error\":\"" + ex.getMessage() + "\"}"); }
             return;
         }
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) { exchange.sendResponseHeaders(405, -1); return; }
@@ -123,8 +163,7 @@ public class Server {
         String id = params.get("id");
         // param id delete
         if (id == null) { sendJson(exchange, "{\"ok\":false, \"error\":\"id missing\"}"); return; }
-        boolean removed = db.removeVehicleById(id);
-        sendJson(exchange, "{\"ok\": " + removed + "}");
+                try { boolean removed = service.removeVehicleById(id); sendJson(exchange, "{\"ok\": " + removed + "}"); } catch (Exception ex) { sendJson(exchange, "{\"ok\":false, \"error\":\"" + ex.getMessage() + "\"}"); }
     }
 
     private void handleUpdate(HttpExchange exchange) throws IOException {
@@ -149,11 +188,12 @@ public class Server {
                 // decodeVehicleFromParams to create with id
                 Vehicle pv = decodeVehicleFromParams(type, params, id);
                 if (pv != null) {
-                    boolean ok = db.updateVehiclePreserveId(pv);
+                    boolean ok = service.updateVehicle(pv);
                     sendJson(exchange, "{\"ok\": " + ok + "}");
                     return;
                 }
-                db.replaceVehicleById(id, v);
+                // fallback: for replace with different id, attempt update; or remove+add
+                try { service.removeVehicleById(id); service.addVehicle(v); } catch (Exception ex) { sendJson(exchange, "{\"ok\":false, \"error\":\"" + ex.getMessage() + "\"}"); return; }
                 sendJson(exchange, "{\"ok\":true}");
                 return;
             }
@@ -165,16 +205,14 @@ public class Server {
 
     private void handleSaveJson(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) { exchange.sendResponseHeaders(405, -1); return; }
-        db.saveToJson("vehicles.json");
-        sendJson(exchange, "{\"ok\":true}");
+        try { service.saveToJson("vehicles.json"); sendJson(exchange, "{\"ok\":true}"); return; } catch (Exception ex) { sendJson(exchange, "{\"ok\":false, \"error\":\"" + ex.getMessage() + "\"}"); return; }
     }
 
     // CSV endpoints removed; use /api/vehicles/loadJson instead
 
     private void handleLoadJson(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) { exchange.sendResponseHeaders(405, -1); return; }
-        db.loadFromJson("vehicles.json");
-        sendJson(exchange, "{\"ok\":true}");
+        try { service.loadFromJson("vehicles.json"); sendJson(exchange, "{\"ok\":true}"); return; } catch (Exception ex) { sendJson(exchange, "{\"ok\":false, \"error\":\"" + ex.getMessage() + "\"}"); return; }
     }
 
     private Vehicle decodeVehicleFromParams(String type, Map<String,String> params) {
@@ -309,8 +347,53 @@ public class Server {
         try (OutputStream os = exchange.getResponseBody()) { os.write(bytes); }
     }
 
+    private void handleAdminShutdown(HttpExchange exchange) throws IOException {
+        // Only allow POST
+        if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) { exchange.sendResponseHeaders(405, -1); return; }
+        // Check remote address is loopback or admin token is provided
+        boolean allowed = false;
+        java.net.InetAddress remote = exchange.getRemoteAddress().getAddress();
+        if (remote.isLoopbackAddress() || remote.isAnyLocalAddress()) { allowed = true; }
+        if (!allowed && adminToken != null && !adminToken.isEmpty()) {
+            List<String> tokens = exchange.getRequestHeaders().getOrDefault("X-Admin-Token", java.util.Collections.emptyList());
+            if (!tokens.isEmpty() && adminToken.equals(tokens.get(0))) allowed = true;
+        }
+        if (!allowed) { exchange.sendResponseHeaders(403, -1); return; }
+        // send response and stop server after a short delay to allow response to flush
+        String body = "{\"ok\":true, \"msg\":\"shutting down\"}";
+        exchange.getResponseHeaders().add("Content-Type", "application/json");
+        exchange.sendResponseHeaders(200, body.getBytes(StandardCharsets.UTF_8).length);
+        try (OutputStream os = exchange.getResponseBody()) { os.write(body.getBytes(StandardCharsets.UTF_8)); }
+        new Thread(() -> { try { Thread.sleep(200); stop(); } catch (Exception ignored) {} }).start();
+    }
+
     public static void main(String[] args) throws Exception {
-        Server srv = new Server(8000);
+        int port = 8000;
+        boolean useJdbc = false;
+        String jdbcUrl = "jdbc:h2:mem:vehicledb;DB_CLOSE_DELAY=-1";
+        String adminToken = System.getenv("ADMIN_TOKEN");
+        String dbUser = System.getenv("DB_USER");
+        String dbPass = System.getenv("DB_PASS");
+        if (args.length > 0) {
+            for (String a : args) {
+                if (a.equalsIgnoreCase("--jdbc")) useJdbc = true;
+                else if (a.startsWith("--jdbcUrl=")) jdbcUrl = a.substring("--jdbcUrl=".length());
+                else if (a.startsWith("--port=")) port = Integer.parseInt(a.substring("--port=".length()));
+                else if (a.startsWith("--admin-token=")) adminToken = a.substring("--admin-token=".length());
+                else if (a.startsWith("--dbUser=")) dbUser = a.substring("--dbUser=".length());
+                else if (a.startsWith("--dbPass=")) dbPass = a.substring("--dbPass=".length());
+            }
+        }
+        Server srv;
+        if (useJdbc) {
+            System.out.println("Starting server with JDBC repository, url=" + jdbcUrl + " port=" + port);
+            VehicleDaoJdbc dao = new VehicleDaoJdbc(jdbcUrl, dbUser, dbPass);
+            dao.init();
+            srv = new Server(port, dao, adminToken);
+        } else {
+            System.out.println("Starting server with in-memory JSON repository on port=" + port);
+            srv = new Server(port, new data.VehicleDatabaseRepository(), adminToken); // uses in-memory db
+        }
         srv.start();
     }
 }

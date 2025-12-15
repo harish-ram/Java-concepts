@@ -1,8 +1,10 @@
 package gui;
 
-import data.VehicleDatabase;
+import services.VehicleService;
+import data.VehicleDatabaseRepository;
 import java.awt.*;
 import java.util.List;
+import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -14,15 +16,19 @@ import models.*;
  * A minimal Swing GUI to view and add vehicles
  */
 public class VehicleGUI extends JFrame {
-    private final VehicleDatabase db;
+    private final VehicleService service;
     private final DefaultTableModel tableModel;
     private JTable table;
     private JLabel statusLabel;
 
     public VehicleGUI() {
+        this(new VehicleService(new VehicleDatabaseRepository()));
+    }
+
+    public VehicleGUI(VehicleService service) {
         super("Vehicle Manager");
-        db = new VehicleDatabase();
-        db.loadFromJson("vehicles.json");
+        this.service = service;
+        try { this.service.loadFromJson("vehicles.json"); } catch (Exception ignored) {}
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         // Try to use Nimbus for a more modern look if available
@@ -189,11 +195,7 @@ public class VehicleGUI extends JFrame {
                 // simple validation
                 if (brand.isEmpty() || model.isEmpty()) { JOptionPane.showMessageDialog(this, "Brand and Model are required"); return; }
                 if (v != null) {
-                    db.addVehicle(v);
-                    db.saveToJson("vehicles.json");
-                    refreshTable();
-                    statusLabel.setText("Added vehicle: " + brand + " " + model);
-                    highlightStatus();
+                    try { service.addVehicle(v); service.saveToJson("vehicles.json"); refreshTable(); statusLabel.setText("Added vehicle: " + brand + " " + model); highlightStatus(); } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Error adding vehicle: " + ex.getMessage()); }
                 }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error adding vehicle: " + ex.getMessage());
@@ -232,24 +234,37 @@ public class VehicleGUI extends JFrame {
         clearFilterBtn.addActionListener(e -> { brandFilterField.setText(""); typeFilter.setSelectedIndex(0); refreshTable(); });
 
         // Save and Load actions
-        saveJsonBtn.addActionListener(e -> { db.saveToJson("vehicles.json"); statusLabel.setText("Saved JSON"); highlightStatus(); }); saveJsonBtn.setMnemonic('S');
-        loadJsonBtn.addActionListener(e -> { db.loadFromJson("vehicles.json"); refreshTable(); statusLabel.setText("Loaded JSON"); }); loadJsonBtn.setMnemonic('L');
-        saveJsonBtn.addActionListener(e -> { db.saveToJson("vehicles.json"); statusLabel.setText("Saved JSON"); highlightStatus(); }); saveJsonBtn.setMnemonic('J');
-        loadJsonBtn.addActionListener(e -> { db.loadFromJson("vehicles.json"); refreshTable(); statusLabel.setText("Loaded JSON"); }); loadJsonBtn.setMnemonic('O');
+            saveJsonBtn.addActionListener(e -> {
+                try {
+                    service.saveToJson("vehicles.json");
+                    statusLabel.setText("Saved JSON");
+                    highlightStatus();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error saving JSON: " + ex.getMessage());
+                }
+            });
+            saveJsonBtn.setMnemonic('S');
+            loadJsonBtn.addActionListener(e -> {
+                try {
+                    service.loadFromJson("vehicles.json");
+                    refreshTable();
+                    statusLabel.setText("Loaded JSON");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error loading JSON: " + ex.getMessage());
+                }
+            });
+            loadJsonBtn.setMnemonic('L');
+        loadJsonBtn.addActionListener(e -> { try { service.loadFromJson("vehicles.json"); refreshTable(); statusLabel.setText("Loaded JSON"); } catch (Exception ignored) {} }); loadJsonBtn.setMnemonic('O');
 
         // Delete action
         deleteBtn.addActionListener(e -> {
             int sel = table.getSelectedRow();
-            if (sel >= 0) {
+                if (sel >= 0) {
                 int modelRow = table.convertRowIndexToModel(sel);
                 String id = (String) tableModel.getValueAt(modelRow, 0);
                 int r = JOptionPane.showConfirmDialog(this, "Delete vehicle id " + id + "?", "Confirm", JOptionPane.YES_NO_OPTION);
                 if (r == JOptionPane.YES_OPTION) {
-                    if (db.removeVehicleById(id)) {
-                        db.saveToJson("vehicles.json");
-                        refreshTable();
-                        statusLabel.setText("Deleted vehicle"); highlightStatus();
-                    }
+                        try { if (service.removeVehicleById(id)) { service.saveToJson("vehicles.json"); refreshTable(); statusLabel.setText("Deleted vehicle"); highlightStatus(); } } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Error deleting vehicle: " + ex.getMessage()); }
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "No row selected");
@@ -289,7 +304,8 @@ public class VehicleGUI extends JFrame {
         if (sel < 0) { JOptionPane.showMessageDialog(this, "No row selected"); return; }
         int modelRow = table.convertRowIndexToModel(sel);
         String id = (String) tableModel.getValueAt(modelRow, 0);
-        Vehicle v = db.getVehicleById(id);
+        Vehicle v;
+        try { v = service.getVehicleById(id); } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Error retrieving vehicle: " + ex.getMessage()); return; }
         if (v == null) { JOptionPane.showMessageDialog(this, "Selected vehicle not found"); return; }
         JComboBox<String> typeEdit = new JComboBox<>(new String[]{"Car","Bike","Truck","Motorcycle"});
         typeEdit.setSelectedItem(v.getClass().getSimpleName());
@@ -331,21 +347,21 @@ public class VehicleGUI extends JFrame {
                 if (tname.equals("car")) {
                     int doors = (Integer) doorsEdit.getValue();
                     String fuel = fuelEdit.getText().trim();
-                    db.updateVehiclePreserveId(new Car(id, bbrand, bmodel, byear, doors, fuel));
+                    try { service.updateVehicle(new Car(id, bbrand, bmodel, byear, doors, fuel)); } catch (Exception ex) { throw ex; }
                 } else if (tname.equals("bike")) {
                     boolean side = sideEdit.isSelected();
                     String cat = bikeCat.getText().trim();
-                    db.updateVehiclePreserveId(new Bike(id, bbrand, bmodel, byear, side, cat));
+                    try { service.updateVehicle(new Bike(id, bbrand, bmodel, byear, side, cat)); } catch (Exception ex) { throw ex; }
                 } else if (tname.equals("truck")) {
                     double payload = ((Integer) payloadEdit.getValue()).doubleValue();
                     boolean trailer = trailerEdit.isSelected();
-                    db.updateVehiclePreserveId(new Truck(id, bbrand, bmodel, byear, payload, trailer));
+                    try { service.updateVehicle(new Truck(id, bbrand, bmodel, byear, payload, trailer)); } catch (Exception ex) { throw ex; }
                 } else if (tname.equals("motorcycle")) {
                     int cc = (Integer) ccEdit.getValue();
                     String cat = motorCat.getText().trim();
-                    db.updateVehiclePreserveId(new Motorcycle(id, bbrand, bmodel, byear, cc, cat));
+                    try { service.updateVehicle(new Motorcycle(id, bbrand, bmodel, byear, cc, cat)); } catch (Exception ex) { throw ex; }
                 }
-                db.saveToJson("vehicles.json");
+                try { service.saveToJson("vehicles.json"); } catch (Exception ignored) {}
                 refreshTable();
                 statusLabel.setText("Updated vehicle: " + bbrand + " " + bmodel); highlightStatus();
             } catch (Exception ex) {
@@ -390,14 +406,15 @@ public class VehicleGUI extends JFrame {
                     case "truck": double payload = ((Integer) payloadAdd.getValue()).doubleValue(); boolean tr = trailerAdd.isSelected(); v = new Truck(brand, model, year, payload, tr); break;
                     case "motorcycle": int cc = (Integer) ccAdd.getValue(); String mcat = motorCatAdd.getText().trim(); v = new Motorcycle(brand, model, year, cc, mcat); break;
                 }
-                if (v != null) { db.addVehicle(v); db.saveToJson("vehicles.json"); refreshTable(); statusLabel.setText("Added vehicle: " + brand + " " + model); highlightStatus(); }
+                if (v != null) { try { service.addVehicle(v); service.saveToJson("vehicles.json"); refreshTable(); statusLabel.setText("Added vehicle: " + brand + " " + model); highlightStatus(); } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Error adding vehicle: " + ex.getMessage()); } }
             } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Error adding vehicle: " + ex.getMessage()); }
         }
     }
 
     private void refreshTable() {
         tableModel.setRowCount(0);
-        List<Vehicle> list = db.getAllVehicles();
+        List<Vehicle> list = new ArrayList<>();
+        try { list = service.getAllVehicles(); } catch (Exception ignored) {}
         for (Vehicle v : list) {
             String type = v.getClass().getSimpleName();
             String details = "";
@@ -430,11 +447,14 @@ public class VehicleGUI extends JFrame {
     }
 
     private void filterTable(String brandFilter, String typeFilter) {
-        if ((brandFilter == null || brandFilter.isEmpty()) && (typeFilter == null || typeFilter.isEmpty())) { refreshTable(); return; }
+        brandFilter = brandFilter == null ? "" : brandFilter.trim();
+        typeFilter = typeFilter == null ? "" : typeFilter.trim();
+        if (brandFilter.isEmpty() && typeFilter.isEmpty()) { refreshTable(); return; }
         tableModel.setRowCount(0);
-        List<Vehicle> list = db.getAllVehicles();
+        List<Vehicle> list = new ArrayList<>();
+        try { list = service.getAllVehicles(); } catch (Exception ignored) {}
         for (Vehicle v : list) {
-            boolean okBrand = (brandFilter == null || brandFilter.isEmpty()) || v.getBrand().equalsIgnoreCase(brandFilter);
+                boolean okBrand = brandFilter.isEmpty() || (v.getBrand() != null && v.getBrand().toLowerCase().contains(brandFilter.toLowerCase()));
             boolean okType = (typeFilter == null || typeFilter.isEmpty()) || v.getClass().getSimpleName().equalsIgnoreCase(typeFilter);
             if (okBrand && okType) { addVehicleToTable(v); }
         }

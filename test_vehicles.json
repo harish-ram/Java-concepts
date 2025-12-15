@@ -1,5 +1,5 @@
-[{"id":"4c54b69a-3c1b-437d-8c51-3bf488e3f202","type":"Car","brand":"Toyota","model":"Camry","year":2023,"doors":4,"fuel":"Hybrid"},
-{"id":"c4bf0083-6c69-4f34-90d2-75d726708e45","type":"Bike","brand":"Harley-Davidson","model":"Street 750","year":2022,"sidecar":false,"category":"Cruiser"},
-{"id":"53113a45-c450-4faf-8c5e-a0fba18737d0","type":"Truck","brand":"Ford","model":"F-150","year":2021,"payload":1500.0,"trailer":false},
-{"id":"8b6d0365-a455-49e7-b755-17d6b513a445","type":"Motorcycle","brand":"Yamaha","model":"R1","year":2022,"cc":1000,"category":"Sports"}
+[{"id":"f9bc5fbe-9e00-48b5-86e1-addb3198c20f","type":"Car","brand":"Toyota","model":"Camry","year":2023,"doors":4,"fuel":"Hybrid"},
+{"id":"14084f25-6d7c-4817-9158-4493f7765f77","type":"Bike","brand":"Harley-Davidson","model":"Street 750","year":2022,"sidecar":false,"category":"Cruiser"},
+{"id":"23b4ba7c-c365-4ce3-a133-819204527403","type":"Truck","brand":"Ford","model":"F-150","year":2021,"payload":1500.0,"trailer":false},
+{"id":"1de8c14f-7bdb-422b-ab2a-e8f23697fd12","type":"Motorcycle","brand":"Yamaha","model":"R1","year":2022,"cc":1000,"category":"Sports"}
 ]

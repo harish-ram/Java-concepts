@@ -16,20 +16,104 @@ public class Main {
         System.out.println("    Java Learning Project");
         System.out.println("========================================");
         
-        // 1. OOP: Inheritance, Polymorphism, Abstraction
-        demonstrateOOP();
-        
-        // 2. Collections, Generics, Lambdas, Streams
-        demonstrateCollectionsAndStreams();
-        
-        // 3. File I/O and Exception Handling
-        demonstrateFileIO();
-        
-        // 4. Concurrency
-        demonstrateConcurrency();
+        // parse args early so we can skip demos when running as a server or GUI in dev
+        boolean runDemos = true;
+        boolean startServer = false, startGui = false, useJdbc = false, startH2Console = false;
+        int port = 8000;
+        String jdbcUrl = "jdbc:h2:mem:vehicledb;DB_CLOSE_DELAY=-1";
+        String dbUser = "sa";
+        String dbPass = "";
+        boolean createDb = false;
+        String adminToken = System.getenv("ADMIN_TOKEN");
+        for (String a : args) {
+            if (a.equalsIgnoreCase("--server")) startServer = true;
+            if (a.equalsIgnoreCase("--gui")) startGui = true;
+            if (a.equalsIgnoreCase("--jdbc")) useJdbc = true;
+            if (a.equalsIgnoreCase("--no-demo")) runDemos = false;
+            if (a.equalsIgnoreCase("--run-demos")) runDemos = true;
+            if (a.startsWith("--port=")) port = Integer.parseInt(a.substring("--port=".length()));
+            if (a.startsWith("--jdbcUrl=")) jdbcUrl = a.substring("--jdbcUrl=".length());
+            if (a.startsWith("--dbUser=")) dbUser = a.substring("--dbUser=".length());
+            if (a.startsWith("--dbPass=")) dbPass = a.substring("--dbPass=".length());
+            if (a.equalsIgnoreCase("--create-db")) createDb = true;
+            if (a.startsWith("--admin-token=")) adminToken = a.substring("--admin-token=".length());
+            if (a.equalsIgnoreCase("--start-h2")) startH2Console = true;
+        }
 
-        // 5. Interactive User Input Demo (ArrayList, HashMap, Exception Handling, Streams), with persistence
-        interactiveVehicleDemo();
+        // Optional: start server and/or GUI with service-backed repository
+        // demos only when runDemos is true and server/gui not requested
+        if (runDemos && !startServer && !startGui) {
+            // 1. OOP: Inheritance, Polymorphism, Abstraction
+            demonstrateOOP();
+            
+            // 2. Collections, Generics, Lambdas, Streams
+            demonstrateCollectionsAndStreams();
+            
+            // 3. File I/O and Exception Handling
+            demonstrateFileIO();
+            
+            // 4. Concurrency
+            demonstrateConcurrency();
+
+            // 5. Interactive User Input Demo (ArrayList, HashMap, Exception Handling, Streams), with persistence
+            interactiveVehicleDemo();
+        }
+        for (String a : args) {
+            if (a.equalsIgnoreCase("--server")) startServer = true;
+            if (a.equalsIgnoreCase("--gui")) startGui = true;
+            if (a.equalsIgnoreCase("--jdbc")) useJdbc = true;
+            if (a.startsWith("--port=")) port = Integer.parseInt(a.substring("--port=".length()));
+            if (a.startsWith("--jdbcUrl=")) jdbcUrl = a.substring("--jdbcUrl=".length());
+            if (a.startsWith("--dbUser=")) dbUser = a.substring("--dbUser=".length());
+            if (a.startsWith("--dbPass=")) dbPass = a.substring("--dbPass=".length());
+            if (a.equalsIgnoreCase("--start-h2")) startH2Console = true;
+        }
+
+        // If user requested JDBC and did not set a URL, default to a file-backed DB in project root for dev.
+        if (useJdbc && (jdbcUrl == null || jdbcUrl.isEmpty() || jdbcUrl.contains("mem:vehicledb"))) {
+            jdbcUrl = "jdbc:h2:./vehicledb;DB_CLOSE_DELAY=-1";
+        }
+        // fallback to environment variables if explicit credentials not set
+        if ((dbUser == null || dbUser.isEmpty()) && System.getenv("DB_USER") != null) dbUser = System.getenv("DB_USER");
+        if ((dbPass == null || dbPass.isEmpty()) && System.getenv("DB_PASS") != null) dbPass = System.getenv("DB_PASS");
+        data.VehicleRepository repo = startServer && useJdbc ? new data.VehicleDaoJdbc(jdbcUrl, dbUser, dbPass) : new data.VehicleDatabaseRepository();
+        services.VehicleService service = new services.VehicleService(repo);
+        if (startServer) {
+            // Optionally start the H2 console to inspect the DB
+            if (startH2Console) {
+                try {
+                    // Start H2 console in a separate process (dev-only)
+                    final String h2Jar = "lib/h2-2.1.214.jar";
+                    final List<String> cmd = new ArrayList<>();
+                    cmd.add("java");
+                    cmd.add("-cp");
+                    cmd.add(h2Jar);
+                    cmd.add("org.h2.tools.Server");
+                    cmd.add("-tcp");
+                    cmd.add("-web");
+                    cmd.add("-tcpAllowOthers");
+                    new ProcessBuilder(cmd).inheritIO().start();
+                } catch (Exception e) {
+                    System.err.println("Failed to start H2 console: " + e.getMessage());
+                }
+            }
+            web.Server srv = new web.Server(port, repo, adminToken);
+            // optionally create DB schema if requested
+            if (useJdbc && createDb) {
+                try { repo.init(); System.out.println("DB schema ensured (create-db)"); } catch (Exception ex) { System.err.println("Error creating DB schema: " + ex.getMessage()); }
+            }
+            srv.start();
+            try {
+                System.out.println("Server running. Waiting for shutdown (use /api/admin/shutdown)...");
+                srv.waitForStop();
+            } catch (InterruptedException ie) {
+                // ignore
+            }
+        }
+        if (startGui) {
+            final services.VehicleService svc = service;
+            javax.swing.SwingUtilities.invokeLater(() -> { gui.VehicleGUI gui = new gui.VehicleGUI(svc); gui.setVisible(true); });
+        }
         
         System.out.println("\n========================================");
         System.out.println("    Application Complete");

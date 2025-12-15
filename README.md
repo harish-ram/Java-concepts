@@ -63,6 +63,44 @@ There's a simple test runner that validates `VehicleDatabase` add/save/load beha
 ```
 javac -d bin src/test/SimpleTestRunner.java src/data/*.java src/models/*.java src/utilities/*.java
 java -cp bin test.SimpleTestRunner
+Dev helper: run all components with a single script
+-----------------------------------------------
+There's a small PowerShell helper script `run-dev.ps1` included to start the H2 console, server (file-based H2 DB), and GUI with default dev settings.
+
+To use it, run:
+```powershell
+cd C:\Users\ERS1399\Downloads\Full-Stack-Dev\JavaLearningProject
+.\run-dev.ps1
+```
+
+This will start the H2 console on port 8082, the server on port 9000 (with `jdbc:h2:./vehicledb`), and the Swing GUI.
+
+You can also customize database credentials and behavior by running `main.Main` with CLI flags. Example:
+```powershell
+java -cp "bin;lib/h2-2.1.214.jar" main.Main --jdbc --port=9000 --dbUser=sa --dbPass="" --no-demo --start-h2
+```
+Notes:
+- `--jdbc` enables JDBC mode (defaults to `jdbc:h2:./vehicledb;DB_CLOSE_DELAY=-1`).
+- `--dbUser` and `--dbPass` override JDBC credentials (default is `sa` with empty password).
+ - If credentials are not supplied via CLI, `main.Main` will fallback to environment variables `DB_USER` and `DB_PASS`.
+ - `--create-db` will create database schema (if missing) on startup when running with `--jdbc`.
+ - `--admin-token` or environment variable `ADMIN_TOKEN` will set an admin token to restrict the shutdown endpoint; the admin shutdown endpoint is `/api/admin/shutdown` and accepts POST from localhost or requests with the header `X-Admin-Token: <token>`.
+- `--no-demo` skips the interactive demos and keeps server running.
+- `--start-h2` tries to start the H2 console programmatically (dev-only).
+
+
+
+Brand filter demo (ad-hoc runner):
+```
+javac -d bin src/test/BrandFilterTestRunner.java src/data/*.java src/models/*.java
+java -cp bin test.BrandFilterTestRunner
+```
+
+JDBC DAO demo (requires H2 in `lib/h2-2.1.214.jar`):
+```
+javac -d bin -cp "lib/h2-2.1.214.jar" src/test/JdbcDaoTestRunner.java src/data/*.java src/models/*.java
+java -cp "bin;lib/h2-2.1.214.jar" test.JdbcDaoTestRunner
+```
 ```
 
 ---

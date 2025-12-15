@@ -12,7 +12,14 @@
                 "src/utilities/*.java",
                 "src/concurrency/*.java",
                 "src/data/*.java",
-                "src/main/Main.java"
+                "src/services/*.java",
+                "src/gui/*.java",
+                "src/web/*.java",
+                "src/main/Main.java",
+                // include small test runners (exclude JUnit tests to avoid missing junit on classpath)
+                "src/test/BrandFilterTestRunner.java",
+                "src/test/JdbcDaoTestRunner.java",
+                "src/test/SimpleTestRunner.java"
             ],
             "group": {
                 "kind": "build",
