@@ -97,6 +97,13 @@ public class VehicleDatabase {
                 .filter(v -> v.getYear() == year)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Backwards-compatible alias for brand filtering used by older tests/code.
+     */
+    public List<Vehicle> filterByBrand(String brand) {
+        return getVehiclesByBrand(brand);
+    }
     
     /**
      * Get average max speed of all vehicles

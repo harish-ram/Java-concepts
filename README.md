@@ -101,6 +101,36 @@ JDBC DAO demo (requires H2 in `lib/h2-2.1.214.jar`):
 javac -d bin -cp "lib/h2-2.1.214.jar" src/test/JdbcDaoTestRunner.java src/data/*.java src/models/*.java
 java -cp "bin;lib/h2-2.1.214.jar" test.JdbcDaoTestRunner
 ```
+
+JPA + Flyway (recommended when using Maven):
+
+- The project supports a JPA-backed repository via Hibernate. Flyway migrations are stored under `src/main/resources/db/migration` and are applied automatically when the JPA repository initializes.
+- Build and run with Maven to ensure dependencies are resolved:
+
+```
+mvn package
+java -jar target/java-learning-project-1.0.0.jar --server --jpa --jdbcUrl=jdbc:h2:./vehicledb;DB_CLOSE_DELAY=-1
+```
+
+This will run Flyway migrations and start the server using the H2 database file `vehicledb` in the project root.
+
+Note: To make the project compile with plain `javac` (IDE-only workflows) minimal `javax.persistence` stubs are included under `src/javax/persistence`. These are only compile-time placeholders so demos and non-JPA flows run without Maven. For full JPA/Hibernate functionality you must build and run with Maven so the real provider and Flyway are present on the classpath.
+
+To create the Maven Wrapper locally (recommended for reproducible builds), run:
+
+```powershell
+scripts\generate-maven-wrapper.ps1
+```
+
+Or run the following directly if you have Maven installed:
+
+```powershell
+mvn -N io.takari:maven:wrapper
+```
+
+After generating the wrapper, commit `mvnw`, `mvnw.cmd` and the `.mvn/wrapper/` directory to the repository. Placeholder wrapper scripts `mvnw` and `mvnw.cmd` are included; if you run them and the wrapper jar is missing, the scripts will instruct you how to generate the wrapper.
+
+CI note: the GitHub Actions workflow prefers `./mvnw` if present, otherwise it falls back to `mvn`.
 ```
 
 ---

@@ -1,19 +1,39 @@
 package models;
 
 /**
- * Abstract base class demonstrating OOP concepts:
- * - Encapsulation (private/protected fields)
- * - Inheritance (extended by Car, Bike, Truck)
- * - Abstraction (abstract methods)
+ * JPA entity base class for vehicles. Uses single-table inheritance.
  */
 import java.util.UUID;
 
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "vehicles")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "vehicle_type")
 public abstract class Vehicle {
-    private final String id;
-    private final String brand;
-    private final String model;
+    @Id
+    @Column(name = "id", nullable = false, unique = true)
+    private String id;
+
+    @Column(name = "brand")
+    private String brand;
+
+    @Column(name = "model")
+    private String model;
+
+    @Column(name = "manufacture_year")
     protected int year;
-    
+
+    // Required by JPA
+    protected Vehicle() {}
+
     public Vehicle(String brand, String model, int year) {
         this(UUID.randomUUID().toString(), brand, model, year);
     }
