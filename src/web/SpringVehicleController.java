@@ -15,7 +15,11 @@ import models.Vehicle;
 @RequestMapping("/api/vehicles")
 public class SpringVehicleController {
 
-    private final VehicleDatabaseRepository repo = new VehicleDatabaseRepository();
+    private final data.VehicleRepository repo;
+
+    public SpringVehicleController(data.VehicleRepository repo) {
+        this.repo = repo;
+    }
 
     @GetMapping
     public List<Vehicle> listAll() throws Exception {
@@ -30,7 +34,13 @@ public class SpringVehicleController {
     @PostMapping("/loadJson")
     public boolean loadJson() {
         try {
-            repo.loadFromJson("vehicles.json");
+            // If backing repository supports loadFromJson, call it. Use reflection to avoid tight coupling.
+            try {
+                java.lang.reflect.Method m = repo.getClass().getMethod("loadFromJson", String.class);
+                m.invoke(repo, "vehicles.json");
+            } catch (NoSuchMethodException nsme) {
+                // not supported; ignore
+            }
             return true;
         } catch (Exception ex) {
             return false;

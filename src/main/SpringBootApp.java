@@ -6,7 +6,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"main","web","data","services","models","utilities","tools","gui"})
 public class SpringBootApp {
 
     public static void main(String[] args) {
