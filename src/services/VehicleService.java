@@ -3,13 +3,17 @@ package services;
 import data.VehicleRepository;
 import java.util.*;
 import models.Vehicle;
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Very small service layer to abstract business logic from controllers and UI.
+ * Service layer to abstract business logic from controllers and UI.
  */
+@Service
 public class VehicleService {
     private final VehicleRepository repo;
 
+    @Autowired
     public VehicleService(VehicleRepository repo) {
         this.repo = repo;
         try { this.repo.init(); } catch (Exception ignored) {}

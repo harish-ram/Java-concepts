@@ -5,8 +5,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @SpringBootApplication(scanBasePackages = {"main","web","data","services","models","utilities","tools","gui"})
+@EnableJpaRepositories(basePackages = {"data"})
+@EntityScan(basePackages = {"models"})
 public class SpringBootApp {
 
     public static void main(String[] args) {
