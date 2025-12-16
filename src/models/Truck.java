@@ -1,11 +1,22 @@
 package models;
 
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+
 /**
  * Truck class with a payload capacity and optional trailer
  */
+@Entity
+@DiscriminatorValue("TRUCK")
 public class Truck extends Vehicle {
-    private final double payloadCapacityKg;
+    @Column(name = "payload_capacity_kg")
+    private double payloadCapacityKg;
+    @Column(name = "has_trailer")
     private boolean hasTrailer;
+
+    // Required by JPA
+    protected Truck() {}
 
     public Truck(String brand, String model, int year, double payloadCapacityKg, boolean hasTrailer) {
         super(brand, model, year);

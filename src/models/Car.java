@@ -1,12 +1,23 @@
 package models;
 
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+
 /**
  * Concrete class demonstrating inheritance and polymorphism
  */
+@Entity
+@DiscriminatorValue("CAR")
 public class Car extends Vehicle {
-    private final int numDoors;
-    private final String fuelType; // "Petrol", "Diesel", "Electric", "Hybrid"
-    
+    @Column(name = "num_doors")
+    private int numDoors;
+    @Column(name = "fuel_type")
+    private String fuelType; // "Petrol", "Diesel", "Electric", "Hybrid"
+
+    // Required by JPA
+    protected Car() {}
+
     public Car(String brand, String model, int year, int numDoors, String fuelType) {
         super(brand, model, year);
         this.numDoors = numDoors;

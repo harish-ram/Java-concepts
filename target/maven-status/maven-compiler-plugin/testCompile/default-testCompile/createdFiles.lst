@@ -1,0 +1,8 @@
+test\VehicleRepositoryJpaIT.class
+test\VehicleRepositoryJpaTest.class
+test\VehicleControllerIT.class
+test\DataProcessorJUnitTest.class
+test\SimpleTestRunner.class
+test\VehicleControllerMoreIT.class
+test\VehicleDatabaseBrandFilterTest.class
+test\VehicleDatabaseJUnitTest.class

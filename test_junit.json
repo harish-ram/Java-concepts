@@ -1,0 +1,3 @@
+[{"id":"e79b3f37-dd1b-4a97-8170-844f19a1f215","type":"Car","brand":"Test","model":"C1","year":2020,"doors":2,"fuel":"Petrol"},
+{"id":"00e88015-eadb-498f-885b-918e5a3a619a","type":"Truck","brand":"Test","model":"T1","year":2019,"payload":500.0,"trailer":true}
+]

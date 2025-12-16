@@ -1,12 +1,23 @@
 package models;
 
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+
 /**
  * Concrete class demonstrating inheritance
  */
+@Entity
+@DiscriminatorValue("BIKE")
 public class Bike extends Vehicle {
-    private final boolean hasSidecar;
-    private final String type; // "Cruiser", "Sports", "Touring"
-    
+    @Column(name = "has_sidecar")
+    private boolean hasSidecar;
+    @Column(name = "bike_type")
+    private String type; // "Cruiser", "Sports", "Touring"
+
+    // Required by JPA
+    protected Bike() {}
+
     public Bike(String brand, String model, int year, boolean hasSidecar, String type) {
         super(brand, model, year);
         this.hasSidecar = hasSidecar;
