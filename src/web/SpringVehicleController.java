@@ -49,16 +49,16 @@ public class SpringVehicleController {
     }
 
     @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> addVehicle(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<Object> addVehicle(@RequestBody Map<String, Object> body) {
         try {
             String type = (String) body.getOrDefault("type", "");
-            if (type == null || type.trim().isEmpty()) return ResponseEntity.badRequest().body("Missing field: type");
+            if (type == null || type.trim().isEmpty()) return ResponseEntity.badRequest().body(Map.of("error", "Missing field: type"));
             String brand = (String) body.get("brand");
             String model = (String) body.get("model");
             Integer year = (body.get("year") instanceof Number) ? ((Number) body.get("year")).intValue() : null;
-            if (brand == null || brand.trim().isEmpty()) return ResponseEntity.badRequest().body("Missing field: brand");
-            if (model == null || model.trim().isEmpty()) return ResponseEntity.badRequest().body("Missing field: model");
-            if (year == null || year < 1886) return ResponseEntity.badRequest().body("Invalid or missing manufacture year");
+            if (brand == null || brand.trim().isEmpty()) return ResponseEntity.badRequest().body(Map.of("error", "Missing field: brand"));
+            if (model == null || model.trim().isEmpty()) return ResponseEntity.badRequest().body(Map.of("error", "Missing field: model"));
+            if (year == null || year < 1886) return ResponseEntity.badRequest().body(Map.of("error", "Invalid or missing manufacture year"));
 
             Vehicle v = null;
             if (type.equalsIgnoreCase("car")) {
@@ -78,18 +78,18 @@ public class SpringVehicleController {
                 String mcat = (String) body.getOrDefault("category", "Sports");
                 v = new Motorcycle(brand, model, year, cc, mcat);
             } else {
-                return ResponseEntity.badRequest().body("Unknown vehicle type: " + type);
+                return ResponseEntity.badRequest().body(Map.of("error", "Unknown vehicle type: " + type));
             }
             service.addVehicle(v);
             // return 201 Created with Location header
-            return ResponseEntity.created(java.net.URI.create("/api/vehicles/" + v.getId())).body(v.getId());
+            return ResponseEntity.created(java.net.URI.create("/api/vehicles/" + v.getId())).body(Map.of("id", v.getId()));
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body(ex.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", ex.getMessage()));
         }
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> updateVehicle(@PathVariable("id") String id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<Object> updateVehicle(@PathVariable("id") String id, @RequestBody Map<String, Object> body) {
         try {
             Vehicle existing = service.getVehicleById(id);
             if (existing == null) return ResponseEntity.notFound().build();
@@ -109,19 +109,19 @@ public class SpringVehicleController {
                 try { java.lang.reflect.Method m3 = existing.getClass().getMethod("setManufactureYear", int.class); m3.invoke(existing, year); } catch (NoSuchMethodException nms) {}
             }
             service.updateVehicle(existing);
-            return ResponseEntity.ok("updated");
+            return ResponseEntity.ok(Map.of("result","updated"));
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body(ex.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", ex.getMessage()));
         }
     }
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<String> deleteVehicleById(@PathVariable("id") String id) {
+    public ResponseEntity<Object> deleteVehicleById(@PathVariable("id") String id) {
         try {
             boolean ok = service.removeVehicleById(id);
             return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body(ex.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", ex.getMessage()));
         }
     }
 

@@ -30,7 +30,7 @@ public class VehicleControllerIT {
         body.put("fuel", "Petrol");
 
         ResponseEntity<String> post = rest.postForEntity("/api/vehicles/add", body, String.class);
-        assertThat(post.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(post.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String id = post.getBody();
         assertThat(id).isNotBlank();
 
