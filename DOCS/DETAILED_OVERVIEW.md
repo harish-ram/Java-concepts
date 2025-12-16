@@ -20,25 +20,25 @@ Running the app (recommended)
 - Build (uses Maven wrapper):
 
 ```bash
-./mvnw -B package
+1: ./mvnw -B package
 ```
 
 - Run server with in-memory JSON repository (fast, no extra deps):
 
 ```bash
-java -jar target/java-learning-project-1.0.0-shaded.jar --server --port=8081 --no-demo
+1: java -jar target/java-learning-project-1.0.0-shaded.jar --server --port=8081 --no-demo
 ```
 
 - Run server with JDBC (file-backed H2):
 
 ```bash
-java -jar target/java-learning-project-1.0.0-shaded.jar --server --jdbc --jdbcUrl=jdbc:h2:./vehicledb;DB_CLOSE_DELAY=-1 --dbUser=sa --dbPass=
+1: java -jar target/java-learning-project-1.0.0-shaded.jar --server --jdbc --jdbcUrl=jdbc:h2:./vehicledb;DB_CLOSE_DELAY=-1 --dbUser=sa --dbPass=
 ```
 
 - Run server with JPA/Hibernate (Flyway migrations applied automatically):
 
 ```bash
-java -jar target/java-learning-project-1.0.0-shaded.jar --server --jpa --jdbcUrl=jdbc:h2:./vehicledb;DB_CLOSE_DELAY=-1 --dbUser=sa --dbPass=
+1: java -jar target/java-learning-project-1.0.0-shaded.jar --server --jpa --jdbcUrl=jdbc:h2:./vehicledb;DB_CLOSE_DELAY=-1 --dbUser=sa --dbPass=
 ```
 
 Notes about JPA and IDE builds

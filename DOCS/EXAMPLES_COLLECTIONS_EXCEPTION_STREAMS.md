@@ -10,19 +10,19 @@ This document contains concise examples and references from the project that dem
 File reference: `src/data/VehicleDatabase.java`
 
 ```java
-// create and manipulate an ArrayList of Vehicles
-List<Vehicle> vehicles = new ArrayList<>();
-vehicles.add(new Car("c1","Toyota",2022,4));
-vehicles.add(new Motorcycle("m1","Yamaha",2023));
-
-for (int i = 0; i < vehicles.size(); i++) {
-    Vehicle v = vehicles.get(i);
-    System.out.println(v.getId() + ": " + v.getBrand());
-}
-// enhanced for
-for (Vehicle v : vehicles) {
-    System.out.println(v);
-}
+ 1: // create and manipulate an ArrayList of Vehicles
+ 2: List<Vehicle> vehicles = new ArrayList<>();
+ 3: vehicles.add(new Car("c1","Toyota",2022,4));
+ 4: vehicles.add(new Motorcycle("m1","Yamaha",2023));
+ 5: 
+ 6: for (int i = 0; i < vehicles.size(); i++) {
+ 7:     Vehicle v = vehicles.get(i);
+ 8:     System.out.println(v.getId() + ": " + v.getBrand());
+ 9: }
+10: // enhanced for
+11: for (Vehicle v : vehicles) {
+12:     System.out.println(v);
+13: }
 ```
 
 ---
@@ -31,13 +31,13 @@ for (Vehicle v : vehicles) {
 File reference: `src/services/VehicleService.java`
 
 ```java
-// count vehicles per brand using a HashMap
-Map<String, Integer> counts = new HashMap<>();
-for (Vehicle v : vehicles) {
-    counts.put(v.getBrand(), counts.getOrDefault(v.getBrand(), 0) + 1);
-}
-
-// or using streams (see Streams section)
+1: // count vehicles per brand using a HashMap
+2: Map<String, Integer> counts = new HashMap<>();
+3: for (Vehicle v : vehicles) {
+4:     counts.put(v.getBrand(), counts.getOrDefault(v.getBrand(), 0) + 1);
+5: }
+6: 
+7: // or using streams (see Streams section)
 ```
 
 ---
@@ -46,21 +46,21 @@ for (Vehicle v : vehicles) {
 File reference: `src/utilities/FileHandler.java`, `src/utilities/DataProcessor.java`
 
 ```java
-// checked exception handling and try-with-resources for I/O
-try (BufferedReader br = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-    String line;
-    while ((line = br.readLine()) != null) {
-        // process
-    }
-} catch (IOException e) {
-    System.err.println("Error reading file: " + e.getMessage());
-}
-
-// throw IllegalArgumentException for invalid inputs
-public void setManufactureYear(int year) {
-    if (year < 1886) throw new IllegalArgumentException("Invalid year");
-    this.manufactureYear = year;
-}
+ 1: // checked exception handling and try-with-resources for I/O
+ 2: try (BufferedReader br = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+ 3:     String line;
+ 4:     while ((line = br.readLine()) != null) {
+ 5:         // process
+ 6:     }
+ 7: } catch (IOException e) {
+ 8:     System.err.println("Error reading file: " + e.getMessage());
+ 9: }
+10: 
+11: // throw IllegalArgumentException for invalid inputs
+12: public void setManufactureYear(int year) {
+13:     if (year < 1886) throw new IllegalArgumentException("Invalid year");
+14:     this.manufactureYear = year;
+15: }
 ```
 
 ---
@@ -69,25 +69,25 @@ public void setManufactureYear(int year) {
 File reference: `src/main/Main.java`, `src/services/VehicleService.java`
 
 ```java
-List<Vehicle> list = // ...
-// filter and collect
-List<Vehicle> recent = list.stream()
-    .filter(v -> v.getManufactureYear() >= 2020)
-    .collect(Collectors.toList());
-
-// group by brand
-Map<String, List<Vehicle>> grouped = list.stream()
-    .collect(Collectors.groupingBy(Vehicle::getBrand));
-
-// count per brand
-Map<String, Long> counts = list.stream()
-    .collect(Collectors.groupingBy(Vehicle::getBrand, Collectors.counting()));
-
-// map and join
-String brands = list.stream()
-    .map(Vehicle::getBrand)
-    .distinct()
-    .collect(Collectors.joining(", "));
+ 1: List<Vehicle> list = // ...
+ 2: // filter and collect
+ 3: List<Vehicle> recent = list.stream()
+ 4:     .filter(v -> v.getManufactureYear() >= 2020)
+ 5:     .collect(Collectors.toList());
+ 6: 
+ 7: // group by brand
+ 8: Map<String, List<Vehicle>> grouped = list.stream()
+ 9:     .collect(Collectors.groupingBy(Vehicle::getBrand));
+10: 
+11: // count per brand
+12: Map<String, Long> counts = list.stream()
+13:     .collect(Collectors.groupingBy(Vehicle::getBrand, Collectors.counting()));
+14: 
+15: // map and join
+16: String brands = list.stream()
+17:     .map(Vehicle::getBrand)
+18:     .distinct()
+19:     .collect(Collectors.joining(", "));
 ```
 
 ---

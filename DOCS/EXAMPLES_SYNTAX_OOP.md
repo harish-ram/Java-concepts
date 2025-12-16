@@ -10,15 +10,15 @@ This file contains compact, copy-paste-ready examples that map directly to conce
 File reference: `src/main/Main.java` / `src/utilities/DataProcessor.java`
 
 ```java
-// primitives, String, control flow, method
-int year = 2023;
-double price = 19999.95;
-String brand = "Toyota";
-
-public static boolean isRecent(int year) {
-    if (year >= 2020) return true;
-    return false;
-}
+1: // primitives, String, control flow, method
+2: int year = 2023;
+3: double price = 19999.95;
+4: String brand = "Toyota";
+5: 
+6: public static boolean isRecent(int year) {
+7:     if (year >= 2020) return true;
+8:     return false;
+9: }
 ```
 
 ---
@@ -27,23 +27,23 @@ public static boolean isRecent(int year) {
 File reference: `src/models/Vehicle.java`
 
 ```java
-public class Vehicle {
-    private String id;
-    private String brand;
-    private int manufactureYear;
-
-    public Vehicle(String id, String brand, int manufactureYear) {
-        this.id = id;
-        this.brand = brand;
-        this.manufactureYear = manufactureYear;
-    }
-
-    public String getId() { return id; }
-    public String getBrand() { return brand; }
-    public int getManufactureYear() { return manufactureYear; }
-
-    public void setBrand(String brand) { this.brand = brand; }
-}
+ 1: public class Vehicle {
+ 2:     private String id;
+ 3:     private String brand;
+ 4:     private int manufactureYear;
+ 5: 
+ 6:     public Vehicle(String id, String brand, int manufactureYear) {
+ 7:         this.id = id;
+ 8:         this.brand = brand;
+ 9:         this.manufactureYear = manufactureYear;
+10:     }
+11: 
+12:     public String getId() { return id; }
+13:     public String getBrand() { return brand; }
+14:     public int getManufactureYear() { return manufactureYear; }
+15: 
+16:     public void setBrand(String brand) { this.brand = brand; }
+17: }
 ```
 
 ---
@@ -52,27 +52,27 @@ public class Vehicle {
 File reference: `src/models/Car.java` (extends Vehicle)
 
 ```java
-public class Car extends Vehicle {
-    private int doors;
-
-    public Car(String id, String brand, int year, int doors) {
-        super(id, brand, year);
-        this.doors = doors;
-    }
-
-    @Override
-    public String toString() {
-        return getBrand() + " " + getManufactureYear() + " (" + doors + " doors)";
-    }
-
-    public void start() {
-        System.out.println("Car starting...");
-    }
-}
-
-// Polymorphic usage:
-Vehicle v = new Car("c1","Honda",2021,4);
-System.out.println(v.toString()); // invokes Car.toString()
+ 1: public class Car extends Vehicle {
+ 2:     private int doors;
+ 3: 
+ 4:     public Car(String id, String brand, int year, int doors) {
+ 5:         super(id, brand, year);
+ 6:         this.doors = doors;
+ 7:     }
+ 8: 
+ 9:     @Override
+10:     public String toString() {
+11:         return getBrand() + " " + getManufactureYear() + " (" + doors + " doors)";
+12:     }
+13: 
+14:     public void start() {
+15:         System.out.println("Car starting...");
+16:     }
+17: }
+18: 
+19: // Polymorphic usage:
+20: Vehicle v = new Car("c1","Honda",2021,4);
+21: System.out.println(v.toString()); // invokes Car.toString()
 ```
 
 ---
@@ -81,18 +81,18 @@ System.out.println(v.toString()); // invokes Car.toString()
 File reference: `src/models/Drivable.java` and implementers
 
 ```java
-public interface Drivable {
-    void start();
-    void stop();
-}
-
-public class Motorcycle extends Vehicle implements Drivable {
-    public Motorcycle(String id, String brand, int year) {
-        super(id, brand, year);
-    }
-    @Override public void start() { System.out.println("Motorcycle started"); }
-    @Override public void stop()  { System.out.println("Motorcycle stopped"); }
-}
+ 1: public interface Drivable {
+ 2:     void start();
+ 3:     void stop();
+ 4: }
+ 5: 
+ 6: public class Motorcycle extends Vehicle implements Drivable {
+ 7:     public Motorcycle(String id, String brand, int year) {
+ 8:         super(id, brand, year);
+ 9:     }
+10:     @Override public void start() { System.out.println("Motorcycle started"); }
+11:     @Override public void stop()  { System.out.println("Motorcycle stopped"); }
+12: }
 ```
 
 ---
@@ -101,16 +101,16 @@ public class Motorcycle extends Vehicle implements Drivable {
 File reference: `src/main/Main.java`, `src/services/VehicleService.java`
 
 ```java
-List<Vehicle> list = List.of(
-    new Car("c1","Toyota",2022,4),
-    new Car("c2","Toyota",2019,4),
-    new Motorcycle("m1","Yamaha",2023)
-);
-
-// filter for recent vehicles
-List<Vehicle> recent = list.stream()
-                            .filter(v -> v.getManufactureYear() >= 2020)
-                            .collect(Collectors.toList());
+ 1: List<Vehicle> list = List.of(
+ 2:     new Car("c1","Toyota",2022,4),
+ 3:     new Car("c2","Toyota",2019,4),
+ 4:     new Motorcycle("m1","Yamaha",2023)
+ 5: );
+ 6: 
+ 7: // filter for recent vehicles
+ 8: List<Vehicle> recent = list.stream()
+ 9:                             .filter(v -> v.getManufactureYear() >= 2020)
+10:                             .collect(Collectors.toList());
 ```
 
 ---

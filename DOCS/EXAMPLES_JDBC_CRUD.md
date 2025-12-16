@@ -10,16 +10,16 @@ This document contains concise examples and references from the project that dem
 File reference: `src/data/VehicleDaoJdbc.java`
 
 ```java
-// Ensure H2 driver is available on the classpath (Maven dependency)
-String url = "jdbc:h2:./vehicledb;DB_CLOSE_DELAY=-1";
-String user = "sa";
-String pass = "";
-
-try (Connection conn = DriverManager.getConnection(url, user, pass)) {
-    // use connection
-} catch (SQLException ex) {
-    throw new RuntimeException("DB connection failed", ex);
-}
+ 1: // Ensure H2 driver is available on the classpath (Maven dependency)
+ 2: String url = "jdbc:h2:./vehicledb;DB_CLOSE_DELAY=-1";
+ 3: String user = "sa";
+ 4: String pass = "";
+ 5: 
+ 6: try (Connection conn = DriverManager.getConnection(url, user, pass)) {
+ 7:     // use connection
+ 8: } catch (SQLException ex) {
+ 9:     throw new RuntimeException("DB connection failed", ex);
+10: }
 ```
 
 Notes:
@@ -30,10 +30,10 @@ Notes:
 
 ## Create table (DDL) ✅
 ```java
-String create = "CREATE TABLE IF NOT EXISTS vehicle (id VARCHAR PRIMARY KEY, brand VARCHAR, model VARCHAR, manufacture_year INT)";
-try (Statement stmt = conn.createStatement()) {
-    stmt.execute(create);
-}
+1: String create = "CREATE TABLE IF NOT EXISTS vehicle (id VARCHAR PRIMARY KEY, brand VARCHAR, model VARCHAR, manufacture_year INT)";
+2: try (Statement stmt = conn.createStatement()) {
+3:     stmt.execute(create);
+4: }
 ```
 
 ---
@@ -42,59 +42,59 @@ try (Statement stmt = conn.createStatement()) {
 File reference: `src/data/VehicleDaoJdbc.java`
 
 ```java
-// INSERT
-String insertSql = "INSERT INTO vehicle (id, brand, model, manufacture_year) VALUES (?, ?, ?, ?)";
-try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
-    ps.setString(1, v.getId());
-    ps.setString(2, v.getBrand());
-    ps.setString(3, v.getModel());
-    ps.setInt(4, v.getManufactureYear());
-    ps.executeUpdate();
-}
-
-// SELECT
-String selectSql = "SELECT id, brand, model, manufacture_year FROM vehicle WHERE id = ?";
-try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
-    ps.setString(1, id);
-    try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-            // build Vehicle from rs
-        }
-    }
-}
-
-// UPDATE
-String updateSql = "UPDATE vehicle SET brand = ?, model = ?, manufacture_year = ? WHERE id = ?";
-try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
-    ps.setString(1, v.getBrand());
-    ps.setString(2, v.getModel());
-    ps.setInt(3, v.getManufactureYear());
-    ps.setString(4, v.getId());
-    ps.executeUpdate();
-}
-
-// DELETE
-String deleteSql = "DELETE FROM vehicle WHERE id = ?";
-try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
-    ps.setString(1, id);
-    ps.executeUpdate();
-}
+ 1: // INSERT
+ 2: String insertSql = "INSERT INTO vehicle (id, brand, model, manufacture_year) VALUES (?, ?, ?, ?)";
+ 3: try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+ 4:     ps.setString(1, v.getId());
+ 5:     ps.setString(2, v.getBrand());
+ 6:     ps.setString(3, v.getModel());
+ 7:     ps.setInt(4, v.getManufactureYear());
+ 8:     ps.executeUpdate();
+ 9: }
+10: 
+11: // SELECT
+12: String selectSql = "SELECT id, brand, model, manufacture_year FROM vehicle WHERE id = ?";
+13: try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
+14:     ps.setString(1, id);
+15:     try (ResultSet rs = ps.executeQuery()) {
+16:         if (rs.next()) {
+17:             // build Vehicle from rs
+18:         }
+19:     }
+20: }
+21: 
+22: // UPDATE
+23: String updateSql = "UPDATE vehicle SET brand = ?, model = ?, manufacture_year = ? WHERE id = ?";
+24: try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+25:     ps.setString(1, v.getBrand());
+26:     ps.setString(2, v.getModel());
+27:     ps.setInt(3, v.getManufactureYear());
+28:     ps.setString(4, v.getId());
+29:     ps.executeUpdate();
+30: }
+31: 
+32: // DELETE
+33: String deleteSql = "DELETE FROM vehicle WHERE id = ?";
+34: try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+35:     ps.setString(1, id);
+36:     ps.executeUpdate();
+37: }
 ```
 
 ---
 
 ## Transactions (commit/rollback) ✅
 ```java
-try {
-    conn.setAutoCommit(false);
-    // multiple operations
-    conn.commit();
-} catch (SQLException e) {
-    conn.rollback();
-    throw e;
-} finally {
-    conn.setAutoCommit(true);
-}
+ 1: try {
+ 2:     conn.setAutoCommit(false);
+ 3:     // multiple operations
+ 4:     conn.commit();
+ 5: } catch (SQLException e) {
+ 6:     conn.rollback();
+ 7:     throw e;
+ 8: } finally {
+ 9:     conn.setAutoCommit(true);
+10: }
 ```
 
 ---

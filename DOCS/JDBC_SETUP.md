@@ -13,7 +13,7 @@ Maven (recommended)
 If you have Maven installed, you can compile and run the test runner using the `exec` plugin:
 
 ```
-mvn clean compile org.codehaus.mojo:exec-maven-plugin:3.1.0:exec -Dexec.mainClass=test.JdbcDaoTestRunner
+1: mvn clean compile org.codehaus.mojo:exec-maven-plugin:3.1.0:exec -Dexec.mainClass=test.JdbcDaoTestRunner
 ```
 
 This builds and runs the test runner using H2 from the dependencies declared in `pom.xml`.
@@ -25,13 +25,13 @@ Manual (no Maven)
 2. Compile the project to the `bin` folder (without JUnit tests):
 
 ```powershell
-javac -d bin src/models/*.java src/utilities/*.java src/data/*.java src/gui/*.java src/web/*.java src/concurrency/*.java src/test/BrandFilterTestRunner.java src/test/JdbcDaoTestRunner.java
+1: javac -d bin src/models/*.java src/utilities/*.java src/data/*.java src/gui/*.java src/web/*.java src/concurrency/*.java src/test/BrandFilterTestRunner.java src/test/JdbcDaoTestRunner.java
 ```
 
 3. Run the JDBC DAO test runner with the H2 jar on classpath:
 
 ```powershell
-java -cp bin;lib/h2-2.1.214.jar test.JdbcDaoTestRunner
+1: java -cp bin;lib/h2-2.1.214.jar test.JdbcDaoTestRunner
 ```
 
 Expected result
@@ -46,7 +46,7 @@ Notes
  - You can start the `Server` in JDBC mode (uses the `VehicleDaoJdbc` class) like this:
 
 ```powershell
-java -cp "bin;lib/h2-2.1.214.jar" web.Server --jdbc --port=9000
+1: java -cp "bin;lib/h2-2.1.214.jar" web.Server --jdbc --port=9000
 ```
 
  This will start the server using H2 in-memory DB and accept API calls to `http://localhost:9000/api/vehicles` for CRUD.
