@@ -42,8 +42,7 @@ API endpoints:
 ## GUI (Swing)
 The project includes a minimal Swing GUI that lists vehicles and allows adding new ones. Compile and run:
 ```
-javac -d bin src/gui/*.java src/models/*.java src/utilities/*.java src/data/*.java
-java -cp bin gui.VehicleGUI
+$cp = Get-Content cp.txt; $cp = $cp -replace "\n",""; $cpFull = "target/classes;" + $cp; & "$env:JAVA_HOME\bin\java" -cp $cpFull main.Main --gui
 ```
 
 UI improvements:

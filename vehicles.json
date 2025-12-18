@@ -118,5 +118,6 @@
 {"id":"77d9a989-f9a9-4999-c901-0089eee99992","type":"Bike","brand":"Yamaha","model":"Fascino","year":2021,"sidecar":false,"category":"Scooter"},
 {"id":"77e0a090-a0b0-4001-d012-0090fff00004","type":"Motorcycle","brand":"Ducati","model":"Multistrada V4","year":2022,"cc":1158,"category":"Adventure"},
 {"id":"e5584cdf-c9a4-4d11-b221-e3652643fcf1","type":"Car","brand":"Mahindra","model":"3XO","year":2025,"doors":4,"fuel":"Petrol"},
-{"id":"7cb738aa-ce3b-41e8-8896-bed62e51c83e","type":"Car","brand":"Hyundai","model":"venue","year":2025,"doors":4,"fuel":"Petrol"}
+{"id":"7cb738aa-ce3b-41e8-8896-bed62e51c83e","type":"Car","brand":"Hyundai","model":"venue","year":2025,"doors":4,"fuel":"Petrol"},
+{"id":"bd8d4a67-da77-48ff-8209-42e7fc984aa3","type":"Motorcycle","brand":"Royal enfield","model":"Classic 350","year":2023,"cc":500,"category":"tourer"}
 ]
